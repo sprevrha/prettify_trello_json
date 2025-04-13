@@ -1,0 +1,182 @@
+/* styles.css */
+:root {
+    --color-red: #FF0000;
+    --color-blue: #0000FF;
+    --color-green: #008000;
+    --color-orange: #FFA500;
+    --color-yellow: #FFFF00;
+    --color-purple: #800080;
+    --color-black: #000000;
+    --color-white: #FFFFFF;
+    --color-gray: #808080;
+    --color-pink: #FFC0CB;
+    --color-brown: #174104;
+    --color-cyan: #00FFFF;
+    --color-lime: #00FF00;
+    --color-green_dark: #052d05;
+}
+
+pre {
+    background-color: #f4f4f4;
+    padding: 10px;
+    border-radius: 5px;
+    overflow: auto;
+    font-family: monospace;
+}
+.string { color: green; }
+.number { color: darkorange; }
+.boolean { color: blue; }
+.null { color: magenta; }
+.key { color: red; }
+
+/* Styling the box */
+#name-box {
+    width: fit-content; /* Adjust the width based on the content */
+    padding: 10px; /* Add some spacing inside the box */
+    border: 2px solid #4caf50; /* Add a green border */
+    border-radius: 5px; /* Round the corners */
+    background-color: #f0f8ff; /* Light blue background */
+    font-family: Arial, sans-serif; /* Use a clean font */
+    font-size: 36px; /* Adjust the text size */
+    font-weight: bold; /* Make the text bold for emphasis */
+    margin-bottom: 5px; /* Add spacing below the name field */
+    color: #333; /* Dark text color */
+    text-align: center; /* Center-align the text */
+    margin: 20px auto; /* Center the box horizontally with some space around */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Add a subtle shadow */
+}
+/* Styling the link */
+#url-link {
+    display: block; /* Makes the link appear as a separate line */
+    color: #1a73e8; /* Blue color for the link */
+    text-decoration: none; /* Removes the underline */
+    font-size: 18px; /* Adjust the text size */
+    font-weight: bold; /* Makes the link bold */
+    margin-top: 10px; /* Adds spacing between the name and the link */
+}
+
+/* Hover effect for the link */
+#url-link:hover {
+    text-decoration: underline; /* Adds underline on hover */
+}
+
+/* Styling the cards */
+.card {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    margin: 15px auto;
+    max-width: 600px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+    color: #4caf50;
+    margin-bottom: 10px;
+}
+
+.card p {
+    margin: 5px 0;
+    color: #333;
+}
+
+.card a {
+    text-decoration: none;
+    color: #1a73e8;
+    font-weight: bold;
+}
+
+.card a:hover {
+    text-decoration: underline;
+}
+
+/* Styling the checklist section */
+.checklist {
+    margin: 15px 0;
+}
+
+.checklist ul {
+    padding-left: 20px;
+    list-style-type: none; /* Remove default bullet points */
+}
+
+.checklist li {
+    display: flex;
+    align-items: center;
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.checklist li input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.checklist li.completed {
+    color: #aaa;
+    text-decoration: line-through;
+}
+
+.checklist li.incomplete {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Styling for the description section of the cards */
+.description {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.description h1,
+.description h2,
+.description h3 {
+    color: #4caf50; /* Heading colors */
+}
+
+.description p {
+    margin: 0 0 10px;
+    color: #333;
+}
+
+.description ul {
+    padding-left: 20px;
+}
+
+.description li {
+    margin-bottom: 5px;
+}
+
+/* Styling the attachments section */
+.attachments {
+    margin: 10px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.attachment-image {
+    max-width: 100px; /* Adjust as needed */
+    max-height: 100px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling the labels */
+.label {
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 2px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    color: #000; /* Default to black text */
+    background-color: #f0f0f0; /* Example light background */
+}

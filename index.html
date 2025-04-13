@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Viewer</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+
+    <div id="name-box">
+        <div id="name-value"></div>
+        <a id="url-link" href="#" target="_blank"></a>
+    </div>
+    <!-- Container for Cards -->
+    <div id="cards-container"></div>
+
+    <!-- Include marked.js library for markdown to html conversion-->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Use Trello's Client Library -->
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+
+    <script>
+        const apiKey = 'YOUR_API_KEY';
+        const token = 'YOUR_API_TOKEN';
+        const boardId = 'YOUR_BOARD_ID'; // Replace with the ID of the board you want to fetch    
+        
+        function syntaxHighlight(json) {
+            if (typeof json !== 'string') {
+                json = JSON.stringify(json, undefined, 2);
+            }
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(:)?|\\b(true|false|null)\\b|-?\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?)/g, function (match) {
+                let cls = 'number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'key';
+                    } else {
+                        cls = 'string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'null';
+                }
+                return `<span class="${cls}">${match}</span>`;
+            });
+        }
+
+        // Utility function to calculate brightness of a color
+        function getBrightness(color) {
+            // Get the computed styles of the root element
+            const rootStyles = getComputedStyle(document.documentElement);
+
+            // Convert color name to hex using CSS variables
+            const hexColor = rootStyles.getPropertyValue(`--color-${color.toLowerCase()}`).trim() || color;
+
+            // Ensure the color is in hex format (#RRGGBB)
+            if (!/^#[0-9A-Fa-f]{6}$/.test(hexColor)) {
+                console.error(`Invalid color format: ${color}`);
+                return 0; // Default to 0 brightness for invalid colors
+            }
+
+            // Extract RGB components
+            const rgb = hexColor
+                .replace('#', '')
+                .match(/.{2}/g)
+                .map(c => parseInt(c, 16));
+
+            // Calculate brightness using the formula
+            const brightness = (rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114) / 255;
+
+            // Debug log for brightness
+            console.log(`Brightness for ${color} (${hexColor}): ${brightness}`);
+            return brightness;
+        }
+
+        const t = TrelloPowerUp.iframe();
+
+        t.board('id', 'name')
+            .then(board => {
+                console.log('Board Info:', board);
+            });
+
+        fetch(`https://api.trello.com/1/boards/${boardId}?fields=name,url&lists=all&cards=all&checklists=all&attachments=all&key=${apiKey}&token=${token}`)
+            .then(response => response.json())
+            .then(trelloData => {
+                console.log('Trello Data:', trelloData);
+                const checklists = trelloData.checklists; // Load all checklists
+                // Capitalize the "permissionLevel" value
+                const permissionLevel = trelloData.prefs.permissionLevel.charAt(0).toUpperCase() + trelloData.prefs.permissionLevel.slice(1);
+                // Display the "name" value with the capitalized "permissionLevel" in parentheses
+                document.getElementById('name-value').innerText = `${trelloData.name} (${permissionLevel})`;  
+                // Display the "url" value as a link
+                const urlLink = document.getElementById('url-link');
+                urlLink.innerText = trelloData.url;
+                urlLink.href = trelloData.url;
+
+                // Display all cards
+                const cardsContainer = document.getElementById('cards-container');
+                trelloData.cards.forEach(card => {
+                    const list = trelloData.lists.find(list => list.id === card.idList); // Find the list name
+
+                    // Create a card element
+                    const cardElement = document.createElement('div');
+                    cardElement.className = 'card';
+                    cardElement.innerHTML = `
+                        <h2>${card.name}</h2>
+                        <div class="description"></div>
+                        <p><strong>List:</strong> ${list ? list.name : "Unknown"}</p>
+                        <div class="labels"></div>
+                        <div class="checklists"></div>
+                        <div class="attachments"></div>
+                        <p><a href="${card.url}" target="_blank">View on Trello</a></p>
+                    `;
+                    // Add labels to the card
+                    const labelsContainer = cardElement.querySelector('.labels');
+                    if (card.labels && card.labels.length > 0) {
+                        card.labels.forEach(label => {
+                            const labelElement = document.createElement('span');
+                            labelElement.className = 'label';
+                            labelElement.innerText = label.name || 'Unnamed'; // Display label name or "Unnamed"
+                            
+                            labelElement.style.backgroundColor = label.color; // Set the background color
+                            // Adjust font color based on background brightness
+                            if (label.color) {
+                                const brightness = getBrightness(label.color);
+                                labelElement.style.color = brightness > 0.5 ? '#000' : '#fff'; // Black for light backgrounds, white for dark
+                            }
+
+                            labelsContainer.appendChild(labelElement);
+                        });
+                    }
+                    // Render markdown in the description
+                    const descriptionContainer = cardElement.querySelector('.description');
+                    descriptionContainer.innerHTML = marked.parse(card.desc || '');
+                    // Add checklists to the card by matching idCard
+                    const checklistsContainer = cardElement.querySelector('.checklists');
+                    const cardChecklists = (checklists || []).filter(checklist => checklist.idCard === card.id);
+
+                    if (cardChecklists.length > 0) {
+                        cardChecklists.forEach(checklist => {
+                            const checklistElement = document.createElement('div');
+                            checklistElement.className = 'checklist';
+                            checklistElement.innerHTML = `<strong>${checklist.name}</strong>`;
+                            const itemsList = document.createElement('ul');
+                            checklist.checkItems.forEach(item => {
+                                const itemElement = document.createElement('li');
+
+                                // Add a checkbox based on the item's status
+                                const checkbox = document.createElement('input');
+                                checkbox.type = 'checkbox';
+                                checkbox.checked = item.state === 'complete'; // Checked if the item is complete
+                                checkbox.disabled = true; // Prevent manual toggling
+
+                                // Add the checkbox and the item name to the list item
+                                itemElement.appendChild(checkbox);
+                                const textNode = document.createTextNode(` ${item.name}`);
+                                itemElement.appendChild(textNode);
+
+                                itemsList.appendChild(itemElement);
+                            });
+                            checklistElement.appendChild(itemsList);
+                            checklistsContainer.appendChild(checklistElement);
+                        });
+                    }
+
+                    // Add image attachments to the card
+                    const attachmentsContainer = cardElement.querySelector('.attachments');
+                    if (card.attachments && card.attachments.length > 0) {
+                        card.attachments.forEach( attachment => {
+                            // Ensure the attachment is an image (based on mimeType)
+                            if (attachment.mimeType === 'image/png') {
+                                const imgElement = document.createElement('img');
+                                // imgElement.src = attachment.url; // Use the full image URL
+                                if (attachment.previews && attachment.previews.length > 0) {
+                                    const previewUrl = attachment.previews[attachment.previews.length - 1].url; // Use the largest preview
+                                    const imgElement = document.createElement('img');
+                                    imgElement.src = previewUrl;
+                                    imgElement.alt = attachment.name;
+                                    imgElement.className = 'attachment-image';
+                                    attachmentsContainer.appendChild(imgElement);
+                                }
+                                imgElement.alt = attachment.name; // Alt text for the image
+                                imgElement.className = 'attachment-image'; // Add a class for styling
+                                imgElement.onerror = () => {
+                                    console.error('Failed to load image:', attachment.url);
+                                };
+                                attachmentsContainer.appendChild(imgElement);
+                            }
+                        });
+                    }                   
+                    // Append the card element to the container
+                    cardsContainer.appendChild(cardElement);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching Trello data:', error);
+                document.getElementById('json-output').innerHTML = '<p style="color:red;">Error loading JSON file. Check the console for details.</p>';
+            });
+    </script>
+</body>
+</html>
