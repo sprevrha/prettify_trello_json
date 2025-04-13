@@ -1,19 +1,39 @@
 /* styles.css */
 :root {
-    --color-red: #FF0000;
-    --color-blue: #0000FF;
-    --color-green: #008000;
-    --color-orange: #FFA500;
-    --color-yellow: #FFFF00;
-    --color-purple: #800080;
-    --color-black: #000000;
-    --color-white: #FFFFFF;
-    --color-gray: #808080;
-    --color-pink: #FFC0CB;
-    --color-brown: #174104;
-    --color-cyan: #00FFFF;
-    --color-lime: #00FF00;
-    --color-green_dark: #052d05;
+    --color-red: #FF0000; /* NEED INFO */
+    --color-blue: #0000FF; /* CONTRACTOR */
+    --color-green: #008000; /* Default green */
+    --color-orange: #FFA500; /* REPAIR */
+    --color-yellow: #FFFF00; /* REPLACE */
+    --color-purple: #800080; /* DRYDOCK */
+    --color-black: #000000; /* Default black */
+    --color-white: #FFFFFF; /* Default white */
+    --color-gray: #808080; /* Default gray */
+    --color-pink: #FFC0CB; /* KAUFEN - BUY */
+    --color-brown: #8B4513; /* Default brown */
+    --color-cyan: #00FFFF; /* Default cyan */
+    --color-lime: #00FF00; /* Default lime */
+    --color-green_dark: #052d05; /* COCKPIT */
+    --color-yellow_dark: #B8860B; /* MODIFY */
+    --color-orange_dark: #FF8C00; /* INSTALL NEW */
+    --color-red_dark: #8B0000; /* Default dark red */
+    --color-purple_dark: #4B0082; /* Default dark purple */
+    --color-blue_dark: #00008B; /* ENGINE */
+    --color-sky: #87CEEB; /* Default sky */
+    --color-sky_dark: #4682B4; /* Default dark sky */
+    --color-lime_dark: #32CD32; /* Default dark lime */
+    --color-pink_dark: #C71585; /* Default dark pink */
+    --color-black_dark: #2F4F4F; /* Default dark black */
+    --color-green_light: #90EE90; /* Default light green */
+    --color-yellow_light: #FFD700; /* CREW */
+    --color-orange_light: #FFE4B5; /* Default light orange */
+    --color-red_light: #FF6347; /* Default light red */
+    --color-purple_light: #DDA0DD; /* Default light purple */
+    --color-blue_light: #ADD8E6; /* Default light blue */
+    --color-sky_light: #B0E2FF; /* Default light sky */
+    --color-lime_light: #98FB98; /* Default light lime */
+    --color-pink_light: #FFB6C1; /* Default light pink */
+    --color-black_light: #A9A9A9; /* Default light black */
 }
 
 pre {
@@ -62,17 +82,18 @@ pre {
 
 /* Styling the cards */
 .card {
-    padding: 20px;
+    position: relative; /* Ensure the list name can be positioned relative to the card */
     border: 1px solid #ccc;
-    border-radius: 8px;
-    background-color: #fff;
-    margin: 15px auto;
-    max-width: 600px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 20px;
+    background-color: #eef;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .card h2 {
-    color: #4caf50;
+    color: #0a0553;
+    background-color: #ffb;
     margin-bottom: 10px;
 }
 
@@ -89,6 +110,19 @@ pre {
 
 .card a:hover {
     text-decoration: underline;
+}
+
+.card .list-name {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #a0a0f0; /* Light purple background */
+    color: #333; /* Dark text color */
+    font-size: 14px;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 /* Styling the checklist section */
@@ -179,4 +213,57 @@ pre {
     text-align: center;
     color: #000; /* Default to black text */
     background-color: #f0f0f0; /* Example light background */
+}
+
+@media print {
+    body {
+        background-color: white; /* Ensure a white background for the page */
+        color: black; /* Default text color */
+    }
+
+    .label {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    /* Ensure label colors are applied */
+    .label {
+        background-color: var(--color-green, #008000); /* Example for green labels */
+        color: white; /* Ensure text is readable */
+    }
+
+    .attachment-image {
+        max-width: 100%; /* Ensure images fit within the page */
+        height: auto;
+    }
+
+    /* Hide unnecessary elements for print */
+    #url-link {
+        display: none; /* Hide the URL link if not needed */
+    }
+
+    a {
+        color: blue; /* Ensure links are visible */
+        text-decoration: underline; /* Make links stand out */
+    }
+
+    a[href]:after {
+        content: " (" attr(href) ")"; /* Optionally display the URL next to the link */
+        font-size: 0.9em;
+        color: gray;
+    }
+
+    #cards-container {
+        display: block;
+        margin: 0 auto;
+    }
+
+    .card {
+        page-break-inside: avoid; /* Prevent cards from being split across pages */
+        margin-bottom: 20px;
+    }
+
 }

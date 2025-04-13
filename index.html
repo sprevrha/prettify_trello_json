@@ -21,9 +21,7 @@
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
     <script>
-        const apiKey = 'YOUR_API_KEY';
-        const token = 'YOUR_API_TOKEN';
-        const boardId = 'YOUR_BOARD_ID'; // Replace with the ID of the board you want to fetch    
+
         
         function syntaxHighlight(json) {
             if (typeof json !== 'string') {
@@ -51,7 +49,6 @@
         function getBrightness(color) {
             // Get the computed styles of the root element
             const rootStyles = getComputedStyle(document.documentElement);
-
             // Convert color name to hex using CSS variables
             const hexColor = rootStyles.getPropertyValue(`--color-${color.toLowerCase()}`).trim() || color;
 
@@ -71,72 +68,90 @@
             const brightness = (rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114) / 255;
 
             // Debug log for brightness
-            console.log(`Brightness for ${color} (${hexColor}): ${brightness}`);
+            // console.log(`Brightness for ${color} (${hexColor}): ${brightness}`);
             return brightness;
         }
+        
+        function fetchFromLocalFile() {
+            // Path to your local JSON file
+            const localFilePath = './data/poV680lx - die-autohus.json'; // Adjust the path as needed
 
-        const t = TrelloPowerUp.iframe();
-
-        t.board('id', 'name')
-            .then(board => {
-                console.log('Board Info:', board);
-            });
-
-        fetch(`https://api.trello.com/1/boards/${boardId}?fields=name,url&lists=all&cards=all&checklists=all&attachments=all&key=${apiKey}&token=${token}`)
-            .then(response => response.json())
-            .then(trelloData => {
-                console.log('Trello Data:', trelloData);
-                const checklists = trelloData.checklists; // Load all checklists
-                // Capitalize the "permissionLevel" value
-                const permissionLevel = trelloData.prefs.permissionLevel.charAt(0).toUpperCase() + trelloData.prefs.permissionLevel.slice(1);
-                // Display the "name" value with the capitalized "permissionLevel" in parentheses
-                document.getElementById('name-value').innerText = `${trelloData.name} (${permissionLevel})`;  
-                // Display the "url" value as a link
-                const urlLink = document.getElementById('url-link');
-                urlLink.innerText = trelloData.url;
-                urlLink.href = trelloData.url;
-
-                // Display all cards
-                const cardsContainer = document.getElementById('cards-container');
-                trelloData.cards.forEach(card => {
-                    const list = trelloData.lists.find(list => list.id === card.idList); // Find the list name
-
-                    // Create a card element
-                    const cardElement = document.createElement('div');
-                    cardElement.className = 'card';
-                    cardElement.innerHTML = `
-                        <h2>${card.name}</h2>
-                        <div class="description"></div>
-                        <p><strong>List:</strong> ${list ? list.name : "Unknown"}</p>
-                        <div class="labels"></div>
-                        <div class="checklists"></div>
-                        <div class="attachments"></div>
-                        <p><a href="${card.url}" target="_blank">View on Trello</a></p>
-                    `;
-                    // Add labels to the card
-                    const labelsContainer = cardElement.querySelector('.labels');
-                    if (card.labels && card.labels.length > 0) {
-                        card.labels.forEach(label => {
-                            const labelElement = document.createElement('span');
-                            labelElement.className = 'label';
-                            labelElement.innerText = label.name || 'Unnamed'; // Display label name or "Unnamed"
-                            
-                            labelElement.style.backgroundColor = label.color; // Set the background color
-                            // Adjust font color based on background brightness
-                            if (label.color) {
-                                const brightness = getBrightness(label.color);
-                                labelElement.style.color = brightness > 0.5 ? '#000' : '#fff'; // Black for light backgrounds, white for dark
-                            }
-
-                            labelsContainer.appendChild(labelElement);
-                        });
+            fetch(localFilePath)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch local file: ${response.statusText}`);
                     }
-                    // Render markdown in the description
-                    const descriptionContainer = cardElement.querySelector('.description');
-                    descriptionContainer.innerHTML = marked.parse(card.desc || '');
-                    // Add checklists to the card by matching idCard
-                    const checklistsContainer = cardElement.querySelector('.checklists');
-                    const cardChecklists = (checklists || []).filter(checklist => checklist.idCard === card.id);
+                    return response.json();
+                })
+                .then(localData => {
+                    console.log('Local Data:', localData);
+                    processTrelloData(localData); // Use the same function to process the data
+                })
+                .catch(error => {
+                    console.error('Error fetching local JSON file:', error);
+                });
+        }
+
+        function processTrelloData(trelloData) {
+            const checklists = trelloData.checklists; // Load all checklists
+            // Capitalize the "permissionLevel" value
+            const permissionLevel = trelloData.prefs.permissionLevel.charAt(0).toUpperCase() + trelloData.prefs.permissionLevel.slice(1);
+            // Display the "name" value with the capitalized "permissionLevel" in parentheses
+            document.getElementById('name-value').innerText = `${trelloData.name} (${permissionLevel})`;  
+            // Display the "url" value as a link
+            const urlLink = document.getElementById('url-link');
+            urlLink.innerText = trelloData.url;
+            urlLink.href = trelloData.url;
+
+            const cardsContainer = document.getElementById('cards-container');
+
+            // Sort cards by their "pos" property
+            const sortedCards = trelloData.cards.sort((a, b) => a.pos - b.pos);
+
+            sortedCards.forEach(card => {
+                const list = trelloData.lists.find(list => list.id === card.idList);
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.innerHTML = `
+                    <div class="list-name">${list ? list.name : "Unknown"}</div>
+                    <div class="labels"></div>
+                    <h2>${card.name}</h2>
+                    <div class="description"></div>
+                    <div class="checklists"></div>
+                    <div class="attachments"></div>
+                    <p><a href="${card.url}" target="_blank">View on Trello</a></p>
+                `;
+                // Add the labels to the card
+                const labelsContainer = cardElement.querySelector('.labels');
+                if (card.labels && card.labels.length > 0) {
+                    card.labels.forEach(label => {
+                        const labelElement = document.createElement('span');
+                        labelElement.className = 'label';
+                        labelElement.innerText = label.name || 'Unnamed'; // Display label name or "Unnamed"
+
+                        // Map label color names to CSS variables
+                        if (label.color) {
+                            const rootStyles = getComputedStyle(document.documentElement);
+                            const cssColor = rootStyles.getPropertyValue(`--color-${label.color.toLowerCase()}`).trim();
+
+                            // Use the CSS variable value if it exists, otherwise fallback to the color name
+                            labelElement.style.backgroundColor = cssColor || label.color;
+
+                            // Adjust font color based on background brightness
+                            const brightness = getBrightness(cssColor || label.color);
+                            labelElement.style.color = brightness > 0.5 ? '#000' : '#fff'; // Black for light backgrounds, white for dark
+                        }
+                        labelsContainer.appendChild(labelElement);
+                    });
+                }
+                
+                // Render markdown in the description
+                const descriptionContainer = cardElement.querySelector('.description');
+                descriptionContainer.innerHTML = marked.parse(card.desc || '');
+                
+                // Add checklists to the card by matching idCard
+                const checklistsContainer = cardElement.querySelector('.checklists');
+                const cardChecklists = (checklists || []).filter(checklist => checklist.idCard === card.id);
 
                     if (cardChecklists.length > 0) {
                         cardChecklists.forEach(checklist => {
@@ -193,11 +208,46 @@
                     // Append the card element to the container
                     cardsContainer.appendChild(cardElement);
                 });
-            })
-            .catch(error => {
-                console.error('Error fetching Trello data:', error);
-                document.getElementById('json-output').innerHTML = '<p style="color:red;">Error loading JSON file. Check the console for details.</p>';
+        }
+
+        if (window.TrelloPowerUp && window.self !== window.top) {
+            console.log('Running as a Trello Power-Up');
+            const t = TrelloPowerUp.iframe();
+
+            // Authorize the user
+            t.authorize({
+                name: 'Pretty-Print to HTML',
+                expiration: 'never', // Token never expires
+                scope: 'read,write', // Permissions
+                success: function () {
+                    console.log('Authorization successful!');
+                },
+                error: function () {
+                    console.error('Authorization failed!');
+                }
             });
+
+            // Get the board's ID and name
+            t.board('id', 'name').then(board => {
+                console.log('Board Info:', board);
+                const boardId = board.id; // Dynamically get the board ID
+                console.log('Board ID:', boardId);
+
+                // Fetch data from Trello using the board ID
+                fetch(`https://api.trello.com/1/boards/${boardId}?fields=name,url&lists=all&cards=all&checklists=all&attachments=all&key=${apiKey}&token=${token}`)
+                    .then(response => response.json())
+                    .then(trelloData => {
+                        console.log('Trello Data:', trelloData);
+                        processTrelloData(trelloData);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching Trello data:', error);
+                    });
+            });
+        } else {
+            console.log('Running as a standalone app');
+            fetchFromLocalFile();
+        }
     </script>
 </body>
 </html>
