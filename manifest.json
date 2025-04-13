@@ -1,0 +1,14 @@
+{
+    "name": "Pretty-Print to HTML",
+    "description": "A Power-Up to display Trello board data in a new tab.",
+    "author": "Sven Prevrhal",
+    "capabilities": {
+      "board-buttons": [
+        {
+          "text": "Open in New Tab",
+          "callback": "https://sprevrha.github.io/prettify_trello_json/index.html",
+          "target": "new-tab"
+        }
+      ]
+    }
+  }
